@@ -1,16 +1,16 @@
-﻿--xếp hạng sp theo gia sp tren toan bo table products
+﻿--Ranking products according to price
 select ProductID, ProductName, CategoryID, unitprice,
       rank () over (order by [unitprice] desc) as ranking
 from Products;
 
 
---xếp hạng sp theo tung category
+--Ranking products according to category
 select ProductID, ProductName, CategoryID, unitprice,
       rank () over (partition by [categoryid] -- phân vùng theo categoryid
 	  order by [unitprice] desc) as ranking
 from Products;
 
---chèn 20 dòng data thực tế vào bảng
+--Create table 
 CREATE TABLE [sinh_vien] (
     [ma_sinh_vien] INT PRIMARY KEY,
     [ho_ten] NVARCHAR(255),
@@ -43,23 +43,23 @@ VALUES
 
 
 
--- xếp hạng sv toàn trg dựa trên điểm số giảm dần
+--Ranking all of students based on averge of score desc
 select [ma_sinh_vien],[ho_ten],[diem_trung_binh],[ma_lop_hoc],
       rank () over ( order by [diem_trung_binh] desc) as ranking
 from [dbo].[sinh_vien];
 
---xếp hạng sv theo từng lớp học
+--Ranking students based on classes
 select [ma_sinh_vien],[ho_ten],[diem_trung_binh],[ma_lop_hoc],
       rank () over ( partition by [ma_lop_hoc] order by [diem_trung_binh] desc) as ranking
 from [dbo].[sinh_vien];
 
 
---xếp hạng sv theo từng lớp học, không nhảy xếp hạng
+--Ranking students based on classes and dense rank(nhay xep hang)
 select [ma_sinh_vien],[ho_ten],[diem_trung_binh],[ma_lop_hoc],
       dense_rank () over ( partition by [ma_lop_hoc] order by [diem_trung_binh] desc) as ranking
 from [dbo].[sinh_vien];
 
---xếp hạng sv theo từng lớp học, không nhảy xếp hạng, ko trùng hạng
+--Ranking students based on classes and dense rank, ko trung
 select [ma_sinh_vien],[ho_ten],[diem_trung_binh],[ma_lop_hoc],
       row_number () over ( partition by [ma_lop_hoc] order by [diem_trung_binh] desc) as ranking
 from [dbo].[sinh_vien];
@@ -72,7 +72,7 @@ select CustomerID, OrderDate, OrderID,
 from Orders
 order by CustomerID, OrderDate;
 
---tính tổng doanh số bán hàng hàng năm cho mỗi khách hàng và xếp hạng dựa doanh số bán hàng (by msyseft)
+--Total price for each year by each customer and ranking it by totalprice (by msyseft)
 with cte as (
 select (od.Quantity*od.UnitPrice-od.Discount) as totalprice, o.CustomerID, year(OrderDate) as years 
 from [Order Details] od
@@ -82,7 +82,7 @@ join orders o on o.orderid=od.orderid)
  from cte
  group by CustomerID, years;
 
- --cách khác siêu nhanh (bạn #)
+ --cách khác siêu nhanh (bạn #) same quest
 SELECT c.CustomerID, c.ContactName, YEAR(o.OrderDate) AS YearOrder, SUM(od.Quantity*od.UnitPrice*(1-od.Discount)) AS [TotalAmount],
 		RANK() OVER (PARTITION BY YEAR(o.OrderDate) ORDER BY SUM(od.Quantity*od.UnitPrice*(1-od.Discount)) DESC) AS Ranking
 FROM Orders o JOIN [Order Details] od ON o.OrderID = od.OrderID
